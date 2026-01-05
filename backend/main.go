@@ -3,6 +3,7 @@ package main
 import (
 	"fms-backend/config"
 	"fms-backend/routes"
+	"fms-backend/utils"
 	"log"
 	"os"
 
@@ -19,6 +20,10 @@ func main() {
 
 	// Initialize database
 	config.ConnectDatabase()
+
+	// Seed admin user and master data
+	utils.SeedAdminUser(config.DB)
+	utils.SeedMasterData(config.DB)
 
 	// Setup Gin router
 	r := gin.Default()
