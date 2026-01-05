@@ -83,22 +83,9 @@ export const MutationTable: React.FC<Props> = ({ data, onEdit, onView, onDelete,
                   <ChevronsUpDown size={14} className="text-gray-500 group-hover:text-gray-700"/>
                 </div>
               </th>
-              <th className="p-4 group cursor-pointer hover:bg-gray-200 transition-colors">
-                <div className="flex items-center justify-between">
-                  Status
-                  <ChevronsUpDown size={14} className="text-gray-500 group-hover:text-gray-700"/>
-                </div>
-              </th>
-              <th className="p-4 group cursor-pointer hover:bg-gray-200 transition-colors">
-                <div className="flex items-center justify-between">
-                  Status Approval
-                  <ChevronsUpDown size={14} className="text-gray-500 group-hover:text-gray-700"/>
-                </div>
-              </th>
-              <th className="p-4 w-56 text-center">Workflow Actions</th>
-              <th className="p-4 w-32 text-center">
-                 Action
-              </th>
+              <th className="p-4 w-32 text-center">Status</th>
+              <th className="p-4 w-44 text-center">Workflow Action</th>
+              <th className="p-4 w-32 text-center">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
@@ -120,12 +107,7 @@ export const MutationTable: React.FC<Props> = ({ data, onEdit, onView, onDelete,
                 <td className="p-4 text-gray-600">{item.tglPermintaan}</td>
                 <td className="p-4 text-gray-600">{item.lokasiAsal}</td>
                 <td className="p-4 text-gray-600">{item.lokasiTujuan}</td>
-                <td className="p-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-cyan-500 text-white">
-                        {item.status}
-                    </span>
-                </td>
-                <td className="p-4">
+                <td className="p-4 text-center">
                     <div className={`inline-flex items-center px-3 py-1 rounded-full font-bold text-[10px] uppercase ${
                         (item.statusApproval || '').toLowerCase().includes('pending') ? 'bg-orange-500 text-white' :
                         (item.statusApproval || '').toLowerCase().includes('reject') ? 'bg-red-500 text-white' :
@@ -141,7 +123,6 @@ export const MutationTable: React.FC<Props> = ({ data, onEdit, onView, onDelete,
                     <div className="flex items-center justify-center gap-2">
                         <button onClick={(e) => { e.stopPropagation(); onView?.(item); }} className="text-black hover:text-gray-700 transition-colors"><Eye size={18} /></button>
                         <button onClick={(e) => { e.stopPropagation(); onEdit?.(item); }} className="text-black hover:text-gray-700 transition-colors"><Pencil size={18} /></button>
-                        <button onClick={(e) => { e.stopPropagation(); onDelete?.(item.id); }} className="text-black hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
                     </div>
                 </td>
               </tr>

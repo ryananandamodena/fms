@@ -79,13 +79,8 @@ export const VehicleContractTable: React.FC<Props> = ({ data, onEdit, onView, on
                   <ChevronsUpDown size={14} className="text-gray-500 group-hover:text-gray-700"/>
                 </div>
               </th>
-              <th className="p-4 w-32 group cursor-pointer hover:bg-gray-200 transition-colors">
-                <div className="flex items-center justify-between">
-                  Status
-                  <ChevronsUpDown size={14} className="text-gray-500 group-hover:text-gray-700"/>
-                </div>
-              </th>
-              <th className="p-4 w-56 text-center">Workflow Actions</th>
+              <th className="p-4 w-32 text-center">Status</th>
+              <th className="p-4 w-44 text-center">Workflow Action</th>
               <th className="p-4 w-32 text-center">Aksi</th>
             </tr>
           </thead>
@@ -106,17 +101,16 @@ export const VehicleContractTable: React.FC<Props> = ({ data, onEdit, onView, on
                         <td className="p-4 font-black text-gray-900">
                             Rp {parseInt(item.biayaSewa || '0').toLocaleString('id-ID')}
                         </td>
-                        <td className="p-4">
+                        <td className="p-4 text-center">
                             {getStatusBadge(item.approvalStatus || 'Approved')}
                         </td>
-                        <td className="p-4">
+                        <td className="p-4 text-center">
                             {renderWorkflowActions(item)}
                         </td>
                         <td className="p-4 text-center">
                             <div className="flex items-center justify-center gap-2">
                                 <button onClick={(e) => { e.stopPropagation(); onView?.(item); }} className="text-gray-400 hover:text-black transition-colors"><Eye size={18} /></button>
                                 <button onClick={(e) => { e.stopPropagation(); onEdit?.(item); }} className="text-gray-400 hover:text-blue-600 transition-colors"><Pencil size={18} /></button>
-                                <button onClick={(e) => { e.stopPropagation(); onDelete?.(item.id); }} className="text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
                             </div>
                         </td>
                     </tr>

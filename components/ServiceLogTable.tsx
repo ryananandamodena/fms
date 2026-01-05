@@ -55,10 +55,9 @@ export const ServiceLogTable: React.FC<Props> = ({ data, onEdit, onView, onDelet
               <th className="p-5 w-56">TGL REQUEST</th>
               <th className="p-5">CHANNEL</th>
               <th className="p-5 w-40">CABANG</th>
-              <th className="p-5 w-32">STATUS</th>
-              <th className="p-5 w-40">STATUS APPROVAL</th>
-              <th className="p-5 w-56 text-center">WORKFLOW ACTIONS</th>
-              <th className="p-5 w-32 pr-8 text-right">ACTION</th>
+              <th className="p-5 w-32 text-center">STATUS</th>
+              <th className="p-5 w-44 text-center">WORKFLOW ACTION</th>
+              <th className="p-5 w-32 pr-8 text-center">ACTION</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50 text-[12px]">
@@ -79,12 +78,7 @@ export const ServiceLogTable: React.FC<Props> = ({ data, onEdit, onView, onDelet
                 <td className="p-5 text-gray-500 font-medium">
                   {item.cabang}
                 </td>
-                <td className="p-5">
-                  <span className={`inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter ${getStatusStyle(item.status)}`}>
-                    {item.status}
-                  </span>
-                </td>
-                <td className="p-5">
+                <td className="p-5 text-center">
                   <div className={`inline-flex items-center justify-center px-3 py-1 rounded-full font-black text-[9px] uppercase border ${
                       (item.statusApproval || '').toLowerCase().includes('pending') ? 'bg-orange-50 text-orange-600 border-orange-200' :
                       (item.statusApproval || '').toLowerCase().includes('reject') ? 'bg-red-50 text-red-600 border-red-200' :
@@ -93,14 +87,13 @@ export const ServiceLogTable: React.FC<Props> = ({ data, onEdit, onView, onDelet
                     {item.statusApproval || 'Pending'}
                   </div>
                 </td>
-                <td className="p-5">
+                <td className="p-5 text-center">
                     {renderWorkflowActions(item)}
                 </td>
-                <td className="p-5 pr-8 text-right">
-                    <div className="flex items-center justify-end gap-1">
+                <td className="p-5 pr-8 text-center">
+                    <div className="flex items-center justify-center gap-1">
                         <button onClick={(e) => { e.stopPropagation(); onView?.(item); }} className="p-1.5 text-gray-300 hover:text-black transition-all"><Eye size={18} /></button>
                         <button onClick={(e) => { e.stopPropagation(); onEdit?.(item); }} className="p-1.5 text-gray-300 hover:text-black transition-all"><Pencil size={18} /></button>
-                        <button onClick={(e) => { e.stopPropagation(); onDelete?.(item.id); }} className="p-1.5 text-gray-300 hover:text-red-500 transition-all"><Trash2 size={18} /></button>
                     </div>
                 </td>
               </tr>

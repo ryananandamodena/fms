@@ -448,6 +448,29 @@ export const BuildingMaintenanceModal: React.FC<Props> = ({
                         </div>
                     ))}
                 </div>
+
+                {/* Workflow Action Buttons */}
+                {form.approvalStatus === 'Pending Approval' && (
+                    <div className="mt-8 pt-8 border-t border-gray-100">
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Workflow Action</h4>
+                        <div className="flex flex-col gap-3">
+                            <button 
+                                onClick={() => setForm({...form, approvalStatus: 'Approved'})}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-black text-[10px] uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-green-500/20"
+                            >
+                                <CheckCircle2 size={16} strokeWidth={3} />
+                                Approve
+                            </button>
+                            <button 
+                                onClick={() => setForm({...form, approvalStatus: 'Rejected'})}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-black text-[10px] uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-red-500/20"
+                            >
+                                <X size={16} strokeWidth={3} />
+                                Reject
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
         </div>

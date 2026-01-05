@@ -765,7 +765,8 @@ export const BuildingAssetItemModal: React.FC<Props> = ({
                                 <div className="pt-2">
                                     <h4 className="text-[13px] font-black text-black uppercase tracking-tight">Status: {form.approvalStatus}</h4>
                                     <p className="text-[11px] text-gray-400 mt-1">
-                                        {form.approvalStatus === 'Approved' ? 'Approved by Manager on 13 Jan 2024' : 'Currently pending review'}
+                                        {form.approvalStatus === 'Approved' ? 'Approved by Manager on 13 Jan 2024' : 
+                                         form.approvalStatus === 'Rejected' ? 'Rejected by Manager' : 'Currently pending review'}
                                     </p>
                                 </div>
                             </div>
@@ -782,6 +783,29 @@ export const BuildingAssetItemModal: React.FC<Props> = ({
                             </div>
                         </div>
                     </div>
+
+                    {/* Workflow Action Buttons */}
+                    {(form.approvalStatus === 'Pending Approval' || form.approvalStatus === 'Draft') && (
+                        <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+                            <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-6">Workflow Action</h4>
+                            <div className="flex items-center gap-4">
+                                <button 
+                                    onClick={() => setForm({...form, approvalStatus: 'Approved'})}
+                                    className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-green-500 hover:bg-green-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-green-500/20"
+                                >
+                                    <CheckCircle2 size={18} strokeWidth={3} />
+                                    Approve
+                                </button>
+                                <button 
+                                    onClick={() => setForm({...form, approvalStatus: 'Rejected'})}
+                                    className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-red-500/20"
+                                >
+                                    <X size={18} strokeWidth={3} />
+                                    Reject
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 

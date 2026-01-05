@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { BuildingAssetRecord } from '../types';
-import { ChevronsUpDown, Eye, Pencil, CheckCircle, XCircle, Clock, MapPin, Building, Activity, RotateCcw } from 'lucide-react';
+import { ChevronsUpDown, Eye, Pencil, CheckCircle, XCircle, Clock, MapPin, Activity, RotateCcw } from 'lucide-react';
 
 interface Props {
   data: BuildingAssetRecord[];
@@ -72,13 +72,15 @@ export const BuildingAssetTable: React.FC<Props> = ({ data, onEdit, onView, onDe
               <th className="p-6 w-40 group cursor-pointer hover:bg-gray-200/50 transition-colors text-center">
                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">CONDITION</span>
               </th>
-              <th className="p-6 w-56 group cursor-pointer hover:bg-gray-200/50 transition-colors text-center">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">APPROVAL STATUS</span>
+              <th className="p-6 w-36 text-center">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">STATUS</span>
               </th>
-              <th className="p-6 w-64 text-center">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">WORKFLOW ACTIONS</span>
+              <th className="p-6 w-44 text-center">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">WORKFLOW ACTION</span>
               </th>
-              <th className="p-6 w-14 text-center pr-8"></th>
+              <th className="p-6 w-32 text-center pr-8">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">ACTION</span>
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -133,13 +135,6 @@ export const BuildingAssetTable: React.FC<Props> = ({ data, onEdit, onView, onDe
                                 <CheckCircle size={16} strokeWidth={3} />
                             </button>
                             <button 
-                                onClick={() => onAction?.(item, 'Revise')}
-                                className="bg-blue-500 hover:bg-blue-600 text-white p-2.5 rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95"
-                                title="Revise / Ask for Correction"
-                            >
-                                <RotateCcw size={16} strokeWidth={3} />
-                            </button>
-                            <button 
                                 onClick={() => onAction?.(item, 'Reject')}
                                 className="bg-red-500 hover:bg-red-600 text-white p-2.5 rounded-xl shadow-lg shadow-red-500/20 transition-all active:scale-95"
                                 title="Reject"
@@ -148,19 +143,16 @@ export const BuildingAssetTable: React.FC<Props> = ({ data, onEdit, onView, onDe
                             </button>
                         </div>
                     ) : (
-                        <div className="text-center text-[10px] font-black text-gray-300 uppercase tracking-widest italic">Workflow Completed</div>
+                        <div className="text-center text-[10px] font-black text-gray-300 uppercase tracking-widest italic">—</div>
                     )}
                 </td>
-                <td className="p-6 text-right pr-8">
-                    <div className="flex items-center justify-end gap-1">
+                <td className="p-6 text-center pr-8">
+                    <div className="flex items-center justify-center gap-1">
                          <button onClick={() => onView?.(item)} className="p-2 text-gray-300 hover:text-black transition-all">
                             <Eye size={18} />
                          </button>
                          <button onClick={() => onEdit?.(item)} className="p-2 text-gray-300 hover:text-black transition-all">
                             <Pencil size={18} />
-                         </button>
-                         <button onClick={() => onDelete?.(item.id)} className="p-2 text-gray-300 hover:text-red-500 transition-all">
-                            <XCircle size={18} />
                          </button>
                     </div>
                 </td>

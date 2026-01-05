@@ -77,22 +77,9 @@ export const SalesTable: React.FC<Props> = ({ data, onEdit, onView, onDelete, on
                   <ChevronsUpDown size={14} className="text-gray-500 group-hover:text-gray-700"/>
                 </div>
               </th>
-              <th className="p-4 group cursor-pointer hover:bg-gray-200 transition-colors">
-                <div className="flex items-center justify-between">
-                  Status
-                  <ChevronsUpDown size={14} className="text-gray-500 group-hover:text-gray-700"/>
-                </div>
-              </th>
-              <th className="p-4 group cursor-pointer hover:bg-gray-200 transition-colors">
-                <div className="flex items-center justify-between">
-                  Status Approval
-                  <ChevronsUpDown size={14} className="text-gray-500 group-hover:text-gray-700"/>
-                </div>
-              </th>
-              <th className="p-4 w-56 text-center">Workflow Actions</th>
-              <th className="p-4 w-32 text-center">
-                 Action
-              </th>
+              <th className="p-4 w-32 text-center">Status</th>
+              <th className="p-4 w-44 text-center">Workflow Action</th>
+              <th className="p-4 w-32 text-center">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
@@ -100,7 +87,6 @@ export const SalesTable: React.FC<Props> = ({ data, onEdit, onView, onDelete, on
               <tr key={item.id} className="bg-white hover:bg-gray-50 transition-colors cursor-pointer group">
                 <td className="p-4 font-medium text-gray-900">{item.id}</td>
                 <td className="p-4">
-                    {/* Conditional Rendering based on assetType */}
                     {item.assetType === 'GENERAL_ASSET' ? (
                         <div className="flex flex-col">
                             <span className="font-bold text-gray-900">{item.assetNumber || '-'}</span>
@@ -114,16 +100,11 @@ export const SalesTable: React.FC<Props> = ({ data, onEdit, onView, onDelete, on
                 <td className="p-4 text-gray-600">{item.channel}</td>
                 <td className="p-4 text-gray-600">{item.cabang}</td>
                 <td className="p-4 font-medium text-gray-900">{item.hargaTertinggi}</td>
-                <td className="p-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-800">
-                        {item.status}
-                    </span>
-                </td>
-                <td className="p-4">
+                <td className="p-4 text-center">
                     <div className={`inline-flex items-center px-3 py-1 rounded-full font-bold text-[10px] uppercase ${
                         (item.statusApproval || '').toLowerCase().includes('pending') ? 'bg-orange-500 text-white' :
                         (item.statusApproval || '').toLowerCase().includes('reject') ? 'bg-red-500 text-white' :
-                        'bg-gray-100 text-gray-800'
+                        'bg-green-500 text-white'
                     }`}>
                         {item.statusApproval || 'PENDING'}
                     </div>
@@ -135,7 +116,6 @@ export const SalesTable: React.FC<Props> = ({ data, onEdit, onView, onDelete, on
                     <div className="flex items-center justify-center gap-2">
                         <button onClick={(e) => { e.stopPropagation(); onView?.(item); }} className="text-black hover:text-gray-700 transition-colors"><Eye size={18} /></button>
                         <button onClick={(e) => { e.stopPropagation(); onEdit?.(item); }} className="text-black hover:text-gray-700 transition-colors"><Pencil size={18} /></button>
-                        <button onClick={(e) => { e.stopPropagation(); onDelete?.(item.id); }} className="text-black hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
                     </div>
                 </td>
               </tr>

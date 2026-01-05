@@ -56,6 +56,7 @@ export const routeMap: Record<string, string> = {
   // Administrasi
   'Vendor': '/vendor',
   'Manajemen User': '/user-management',
+  'Notifikasi': '/notifikasi',
   
   // Data Master
   'Master Approval': '/master/approval',

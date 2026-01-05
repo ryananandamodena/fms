@@ -80,8 +80,8 @@ export const VehicleTable: React.FC<Props> = ({ data, onEdit, onView, onDelete, 
                   <ChevronsUpDown size={12} className="text-gray-300 group-hover:text-black transition-colors"/>
                 </div>
               </th>
-              <th className="p-6 w-36 text-center text-[10px] font-black text-black uppercase tracking-[0.15em]">Approval</th>
-              <th className="p-6 w-56 text-center text-[10px] font-black text-black uppercase tracking-[0.15em]">Workflow Actions</th>
+              <th className="p-6 w-36 text-center text-[10px] font-black text-black uppercase tracking-[0.15em]">Status</th>
+              <th className="p-6 w-44 text-center text-[10px] font-black text-black uppercase tracking-[0.15em]">Workflow Action</th>
               <th className="p-6 w-32 text-center text-[10px] font-black text-black uppercase tracking-[0.15em]">Action</th>
             </tr>
           </thead>
@@ -146,7 +146,6 @@ export const VehicleTable: React.FC<Props> = ({ data, onEdit, onView, onDelete, 
                     <div className="flex items-center justify-center gap-2">
                         <button onClick={(e) => { e.stopPropagation(); onView?.(item); }} className="p-2 text-gray-300 hover:text-black bg-white hover:bg-gray-100 rounded-xl transition-all border border-transparent hover:border-gray-200"><Eye size={16} /></button>
                         <button onClick={(e) => { e.stopPropagation(); onEdit?.(item); }} className="p-2 text-gray-300 hover:text-blue-600 bg-white hover:bg-blue-50 rounded-xl transition-all border border-transparent hover:border-blue-100"><Pencil size={16} /></button>
-                        <button onClick={(e) => { e.stopPropagation(); onDelete?.(item.id); }} className="p-2 text-gray-300 hover:text-red-600 bg-white hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-100"><Trash2 size={16} /></button>
                     </div>
                 </td>
               </tr>

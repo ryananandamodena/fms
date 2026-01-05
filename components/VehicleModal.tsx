@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Save, Car, Shield, FileText, Briefcase, MapPin, DollarSign, UploadCloud, Trash2, Calendar, User, Info, CheckCircle2, Clock, GitBranch, Image as ImageIcon, Calculator, TrendingDown, TrendingUp } from 'lucide-react';
 import { VehicleRecord, GeneralMasterItem } from '../types';
+import { sendApprovalNotification, processApprovalNotification, getApproversForModule } from '../services/notificationService';
 
 interface Props {
   isOpen: boolean;
@@ -147,7 +148,7 @@ export const VehicleModal: React.FC<Props> = ({
       setDocPreviews(prev => ({ ...prev, [key]: null }));
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
       const updatedData: Partial<VehicleRecord> = {
           ...form,
           stnkUrl: docPreviews.stnk || undefined,
@@ -157,6 +158,40 @@ export const VehicleModal: React.FC<Props> = ({
           photoRight: docPreviews.right || undefined,
           photoLeft: docPreviews.left || undefined,
       };
+      
+      // Send approval notification if creating new or status is pending
+      if (mode === 'create' || form.approvalStatus === 'Pending' || form.approvalStatus === 'Pending Approval') {
+          try {
+              const approvers = await getApproversForModule('VEHICLE', form.cabang);
+              if (approvers.length > 0) {
+                  await sendApprovalNotification({
+                      module: 'VEHICLE',
+                      requestId: form.id?.toString() || `NEW-${Date.now()}`,
+                      requestNo: form.noPolisi || 'NEW',
+                      requestTitle: `${form.nama || 'Kendaraan Baru'} - ${form.noPolisi || ''}`,
+                      requestType: mode === 'create' ? 'NEW' : 'UPDATE',
+                      requester: {
+                          id: 1, // Current user ID - get from auth context
+                          name: 'Ibnu Faisal', // Current user name
+                          email: 'ibnu.faisal@modena.com',
+                          department: 'Facility Management',
+                          branch: form.cabang,
+                      },
+                      approvers,
+                      details: {
+                          'No Polisi': form.noPolisi || '-',
+                          'Merek': form.merek || '-',
+                          'Tipe': form.tipeKendaraan || '-',
+                          'Channel': form.channel || '-',
+                          'Cabang': form.cabang || '-',
+                      },
+                  });
+              }
+          } catch (error) {
+              console.error('Failed to send notification:', error);
+          }
+      }
+      
       onSave(updatedData);
   }
 
@@ -598,7 +633,7 @@ export const VehicleModal: React.FC<Props> = ({
                                     {form.approvalStatus === 'Approved' ? <CheckCircle2 size={20} /> : 
                                      form.approvalStatus === 'Rejected' ? <X size={20} /> : <Clock size={20} />}
                                 </div>
-                                <div className="pt-2">
+                                <div className="pt-2 flex-1">
                                     <h4 className="text-[13px] font-black text-black uppercase tracking-tight">Status: {form.approvalStatus}</h4>
                                     <p className="text-[11px] text-gray-400 mt-1">
                                         {form.approvalStatus === 'Approved' ? 'Approved by Manager' : 
@@ -608,6 +643,72 @@ export const VehicleModal: React.FC<Props> = ({
                             </div>
                         </div>
                   </div>
+
+                  {/* Workflow Action Buttons */}
+                  {form.approvalStatus === 'Pending Approval' && (
+                      <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+                          <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-6">Workflow Action</h4>
+                          <div className="flex items-center gap-4">
+                              <button 
+                                  onClick={async () => {
+                                      setForm({...form, approvalStatus: 'Approved'});
+                                      // Send notification to requester
+                                      await processApprovalNotification({
+                                          module: 'VEHICLE',
+                                          requestId: form.id?.toString() || '',
+                                          requestNo: form.noPolisi,
+                                          requestTitle: `${form.nama} - ${form.noPolisi}`,
+                                          action: 'Approved',
+                                          approver: {
+                                              id: 1, // Current user ID
+                                              name: 'Ibnu Faisal',
+                                              email: 'ibnu.faisal@modena.com',
+                                              role: 'Facility Manager',
+                                          },
+                                          requester: {
+                                              id: 1, // Original requester ID
+                                              name: 'Requester Name',
+                                              email: 'requester@modena.com',
+                                          },
+                                      });
+                                  }}
+                                  className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-green-500 hover:bg-green-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-green-500/20"
+                              >
+                                  <CheckCircle2 size={18} strokeWidth={3} />
+                                  Approve
+                              </button>
+                              <button 
+                                  onClick={async () => {
+                                      setForm({...form, approvalStatus: 'Rejected'});
+                                      // Send notification to requester
+                                      await processApprovalNotification({
+                                          module: 'VEHICLE',
+                                          requestId: form.id?.toString() || '',
+                                          requestNo: form.noPolisi,
+                                          requestTitle: `${form.nama} - ${form.noPolisi}`,
+                                          action: 'Rejected',
+                                          comment: 'Ditolak oleh approver',
+                                          approver: {
+                                              id: 1,
+                                              name: 'Ibnu Faisal',
+                                              email: 'ibnu.faisal@modena.com',
+                                              role: 'Facility Manager',
+                                          },
+                                          requester: {
+                                              id: 1,
+                                              name: 'Requester Name',
+                                              email: 'requester@modena.com',
+                                          },
+                                      });
+                                  }}
+                                  className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-red-500/20"
+                              >
+                                  <X size={18} strokeWidth={3} />
+                                  Reject
+                              </button>
+                          </div>
+                      </div>
+                  )}
               </div>
           )}
 

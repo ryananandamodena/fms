@@ -58,9 +58,8 @@ export const TaxKirTable: React.FC<Props> = ({ data, onEdit, onView, onDelete, o
               <TableHeader label="Jenis" />
               <TableHeader label="Channel" />
               <TableHeader label="Cabang" />
-              <TableHeader label="Status" />
-              <TableHeader label="Status Approval" />
-              <TableHeader label="Workflow Actions" className="text-center w-56" />
+              <TableHeader label="Status" className="text-center w-32" />
+              <TableHeader label="Workflow Action" className="text-center w-44" />
               <th className="p-4 border-b border-gray-200 text-[11px] font-bold text-gray-500 uppercase text-center w-32">Action</th>
             </tr>
           </thead>
@@ -73,16 +72,11 @@ export const TaxKirTable: React.FC<Props> = ({ data, onEdit, onView, onDelete, o
                 <td className="p-4 text-gray-600">{item.jenis}</td>
                 <td className="p-4 text-gray-600">{item.channel}</td>
                 <td className="p-4 text-gray-600">{item.cabang}</td>
-                <td className="p-4">
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-gray-100 text-gray-600 border border-gray-200">
-                    {item.status}
-                  </span>
-                </td>
                 <td className="p-4 text-center">
                   <div className={`inline-flex items-center justify-center px-3 py-1 rounded-full font-bold text-[10px] uppercase border ${
                       (item.statusApproval || '').toLowerCase().includes('pending') ? 'bg-orange-50 text-orange-600 border-orange-200' :
                       (item.statusApproval || '').toLowerCase().includes('reject') ? 'bg-red-50 text-red-600 border-red-200' :
-                      'bg-gray-100 text-gray-500 border-gray-200'
+                      'bg-green-50 text-green-600 border-green-200'
                   }`}>
                     {item.statusApproval}
                   </div>
@@ -94,7 +88,6 @@ export const TaxKirTable: React.FC<Props> = ({ data, onEdit, onView, onDelete, o
                     <div className="flex items-center justify-center gap-2">
                         <button onClick={(e) => { e.stopPropagation(); onView?.(item); }} className="p-1.5 text-black hover:text-gray-600 transition-colors"><Eye size={18} /></button>
                         <button onClick={(e) => { e.stopPropagation(); onEdit?.(item); }} className="p-1.5 text-black hover:text-gray-600 transition-colors"><Pencil size={18} /></button>
-                        <button onClick={(e) => { e.stopPropagation(); onDelete?.(item.id); }} className="p-1.5 text-black hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
                     </div>
                 </td>
               </tr>

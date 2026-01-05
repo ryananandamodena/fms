@@ -163,7 +163,7 @@ const PermintaanLoker: React.FC = () => {
                 <th className="text-left py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-wider">Departemen</th>
                 <th className="text-left py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-wider">Lokasi</th>
                 <th className="text-left py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-wider">Status</th>
-                <th className="text-center py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-wider">Approval</th>
+                <th className="text-center py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-wider">Workflow Action</th>
                 <th className="text-right py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-wider">Aksi</th>
               </tr>
             </thead>

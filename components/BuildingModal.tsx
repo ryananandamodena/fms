@@ -1059,6 +1059,39 @@ export const BuildingModal: React.FC<Props> = ({
                             ))}
                         </div>
                   </div>
+
+                  {/* Workflow Action Buttons */}
+                  {form.workflow?.some((step: WorkflowStep) => step.status === 'Pending') && (
+                      <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+                          <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-6">Workflow Action</h4>
+                          <div className="flex items-center gap-4">
+                              <button 
+                                  onClick={() => {
+                                      const updatedWorkflow = form.workflow?.map((step: WorkflowStep) => 
+                                          step.status === 'Pending' ? {...step, status: 'Approved' as const, date: new Date().toLocaleDateString()} : step
+                                      );
+                                      setForm({...form, workflow: updatedWorkflow});
+                                  }}
+                                  className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-green-500 hover:bg-green-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-green-500/20"
+                              >
+                                  <CheckCircle2 size={18} strokeWidth={3} />
+                                  Approve
+                              </button>
+                              <button 
+                                  onClick={() => {
+                                      const updatedWorkflow = form.workflow?.map((step: WorkflowStep) => 
+                                          step.status === 'Pending' ? {...step, status: 'Rejected' as const, date: new Date().toLocaleDateString()} : step
+                                      );
+                                      setForm({...form, workflow: updatedWorkflow});
+                                  }}
+                                  className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-red-500/20"
+                              >
+                                  <X size={18} strokeWidth={3} />
+                                  Reject
+                              </button>
+                          </div>
+                      </div>
+                  )}
               </div>
             )}
 

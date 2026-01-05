@@ -60,6 +60,7 @@ const StockOpname = React.lazy(() => import('./pages/StockOpname'));
 // Administration
 const Vendor = React.lazy(() => import('./pages/Vendor'));
 const ManajemenUser = React.lazy(() => import('./pages/ManajemenUser'));
+const Notifikasi = React.lazy(() => import('./pages/Notifikasi'));
 
 // Master Data
 const MasterApproval = React.lazy(() => import('./pages/master/MasterApproval'));
@@ -147,6 +148,7 @@ export const router = createBrowserRouter([
       // Administration
       { path: 'vendor', element: <Vendor /> },
       { path: 'user-management', element: <ManajemenUser /> },
+      { path: 'notifikasi', element: <Notifikasi /> },
       
       // Master Data
       { path: 'master/approval', element: <MasterApproval /> },

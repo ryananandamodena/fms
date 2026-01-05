@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Save, DollarSign, Car, Tag, TrendingUp, User, Clock, AlertCircle, Mail, Link, Copy, Check, ShieldCheck, ChevronRight, Trophy, Users, Phone, CreditCard, Info, Hash, Calendar as CalendarIcon, FileText, Package, Filter } from 'lucide-react';
+import { X, Save, DollarSign, Car, Tag, TrendingUp, User, Clock, AlertCircle, Mail, Link, Copy, Check, ShieldCheck, ChevronRight, Trophy, Users, Phone, CreditCard, Info, Hash, Calendar as CalendarIcon, FileText, Package, Filter, CheckCircle2 } from 'lucide-react';
 import { SalesRecord, VehicleRecord, BidRecord, BidderRegistration, GeneralAssetRecord } from '../types';
 import { SearchableSelect, SelectOption } from './SearchableSelect';
 
@@ -793,9 +793,62 @@ export const SalesModal: React.FC<Props> = ({
 
             {/* TAB: WORKFLOW */}
             {activeTab === 'WORKFLOW' && (
-                <div className="w-full py-20 text-center">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Workflow information available after creation</p>
-                </div>
+                <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="bg-white p-12 rounded-[2.5rem] border border-gray-100 shadow-sm relative overflow-hidden">
+                        <div className="absolute left-[63px] top-12 bottom-12 w-[2px] bg-gray-100"></div>
+                        <div className="space-y-10 relative z-10">
+                            <div className="flex gap-8">
+                                <div className="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center shadow-lg shadow-black/20 shrink-0">
+                                    <FileText size={20} strokeWidth={3} />
+                                </div>
+                                <div className="pt-2">
+                                    <h4 className="text-[13px] font-black text-black uppercase tracking-tight">Sales Request Created</h4>
+                                    <p className="text-[11px] text-gray-400 mt-1">Submitted on {form.tglRequest || new Date().toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-8">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 border-4 border-white shadow-lg ${
+                                    form.statusApproval === 'Approved' ? 'bg-green-500 text-white shadow-green-200' :
+                                    form.statusApproval === 'Rejected' ? 'bg-red-500 text-white shadow-red-200' :
+                                    'bg-orange-500 text-white shadow-orange-200'
+                                }`}>
+                                    {form.statusApproval === 'Approved' ? <CheckCircle2 size={20} /> : 
+                                     form.statusApproval === 'Rejected' ? <X size={20} /> : <Clock size={20} />}
+                                </div>
+                                <div className="pt-2">
+                                    <h4 className="text-[13px] font-black text-black uppercase tracking-tight">Status: {form.statusApproval}</h4>
+                                    <p className="text-[11px] text-gray-400 mt-1">
+                                        {form.statusApproval === 'Approved' ? 'Sales Approved' : 
+                                         form.statusApproval === 'Rejected' ? 'Sales Rejected' : 'Waiting for approval'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                  </div>
+
+                  {/* Workflow Action Buttons */}
+                  {(form.statusApproval === 'Pending' || form.statusApproval === 'Pending Approval') && (
+                      <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+                          <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-6">Workflow Action</h4>
+                          <div className="flex items-center gap-4">
+                              <button 
+                                  onClick={() => setForm({...form, statusApproval: 'Approved'})}
+                                  className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-green-500 hover:bg-green-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-green-500/20"
+                              >
+                                  <CheckCircle2 size={18} strokeWidth={3} />
+                                  Approve
+                              </button>
+                              <button 
+                                  onClick={() => setForm({...form, statusApproval: 'Rejected'})}
+                                  className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-red-500/20"
+                              >
+                                  <X size={18} strokeWidth={3} />
+                                  Reject
+                              </button>
+                          </div>
+                      </div>
+                  )}
+              </div>
             )}
 
             {/* GLOBAL OVERLAY: Selected Bidder Details */}

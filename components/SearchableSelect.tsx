@@ -75,9 +75,9 @@ export const SearchableSelect: React.FC<Props> = ({
 
   if (disabled) {
     return (
-      <div className={`w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 ${Icon ? 'pl-12' : ''} text-[12px] font-black text-gray-400 ${className}`}>
+      <div className={`relative w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 ${Icon ? 'pl-12' : ''} text-[12px] font-black text-gray-400 ${className}`}>
         {Icon && <Icon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />}
-        {selectedOption?.label || placeholder}
+        <span className="truncate">{selectedOption?.label || placeholder}</span>
       </div>
     );
   }

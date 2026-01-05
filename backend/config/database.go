@@ -45,13 +45,79 @@ func ConnectDatabase() {
 
 	log.Println("Database connected successfully")
 
-	// Auto migrate models
+	// Auto migrate all models
 	DB.AutoMigrate(
+		// Master Data
 		&models.GeneralMaster{},
 		&models.MasterCategory{},
+		&models.MasterApproval{},
+		&models.ApprovalTier{},
+		
+		// Users & Auth
+		&models.User{},
+		
+		// Vendors
+		&models.Vendor{},
+		
+		// Vehicles
+		&models.Vehicle{},
+		&models.VehicleContract{},
+		&models.VehicleService{},
+		&models.SparePart{},
+		&models.TaxKir{},
+		&models.VehicleMutation{},
+		&models.VehicleSale{},
+		&models.Bid{},
+		
+		// Buildings
+		&models.Building{},
+		&models.BuildingAsset{},
+		&models.BuildingMaintenance{},
+		&models.Utility{},
+		&models.Compliance{},
+		&models.LogBook{},
+		
+		// General Assets
+		&models.GeneralAsset{},
+		&models.AssetMutation{},
+		&models.AssetSale{},
+		&models.AssetMaintenance{},
+		&models.MaintenanceReminder{},
+		
+		// Insurance
+		&models.Insurance{},
+		&models.InsuranceClaim{},
+		
+		// Stationery (ATK/ARK)
+		&models.MasterItem{},
+		&models.StationeryRequest{},
+		&models.StationeryRequestItem{},
+		&models.DeliveryLocation{},
+		
+		// Timesheet
+		&models.Timesheet{},
+		&models.Absensi{},
+		&models.StockOpname{},
+		
+		// POD
 		&models.ModenaPOD{},
 		&models.PODOccupant{},
 		&models.PODRequest{},
+		
+		// Loker
+		&models.Loker{},
+		&models.LokerRequest{},
+		
+		// Notifications
+		&models.Notification{},
+		&models.ApprovalRequest{},
+		&models.ApprovalHistory{},
+		&models.EmailTemplate{},
+		&models.NotificationSetting{},
+		
+		// Reminders
+		&models.Reminder{},
+		&models.VehicleReminder{},
 	)
 	log.Println("Database migrated successfully")
 }

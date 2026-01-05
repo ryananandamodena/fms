@@ -1,7 +1,9 @@
 
 import React, { useState } from 'react';
-import { Bell, ChevronDown, Menu, Search } from 'lucide-react';
+import { ChevronDown, Menu, Search } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { NotificationPanel } from './NotificationPanel';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
   breadcrumbs?: string[];
@@ -11,11 +13,22 @@ interface Props {
 export const TopBar: React.FC<Props> = ({ breadcrumbs = ['Home', 'Asset Monitoring'], onMenuClick }) => {
   const { language, setLanguage } = useLanguage();
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleLanguage = (lang: 'id' | 'en') => {
     setLanguage(lang);
     setIsLangOpen(false);
   };
+
+  // Handle notification navigation
+  const handleNotificationNavigate = (url: string) => {
+    // Extract path from full URL if needed
+    const path = url.startsWith('http') ? new URL(url).pathname + new URL(url).search : url;
+    navigate(path);
+  };
+
+  // Mock user ID - in real app, get from auth context
+  const currentUserId = 1;
 
   return (
     <header className="h-20 bg-[#FBFBFB] flex items-center justify-between px-8 sticky top-0 z-30 transition-all">
@@ -84,10 +97,10 @@ export const TopBar: React.FC<Props> = ({ breadcrumbs = ['Home', 'Asset Monitori
         </div>
 
         {/* Notifications */}
-        <button className="relative p-2.5 bg-white rounded-xl border border-gray-100 shadow-sm hover:bg-gray-50 transition-all group">
-          <Bell size={18} className="text-gray-400 group-hover:text-black transition-colors" />
-          <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-        </button>
+        <NotificationPanel 
+          userId={currentUserId} 
+          onNavigate={handleNotificationNavigate}
+        />
         
         {/* Divider */}
         <div className="h-8 w-[1px] bg-gray-200"></div>

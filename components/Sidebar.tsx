@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  LayoutDashboard, 
   FileText, 
   Clock, 
   Users, 
@@ -39,7 +38,6 @@ import {
   Stamp,
   CheckCircle2,
   Headset,
-  Hammer,
   Shield,
   Grid3X3,
   Lock,
@@ -281,12 +279,12 @@ export const Sidebar: React.FC<Props> = ({
                   <button
                     key={subIndex}
                     onClick={() => onNavigate(sub.label)}
-                    className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 ml-2
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
                       ${isSubActive
                         ? 'text-white bg-white/10' 
                         : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                   >
-                    <div className={`w-1.5 h-1.5 rounded-full ${isSubActive ? 'bg-white' : 'bg-gray-700'}`}></div>
+                    <span className={`${isSubActive ? 'text-white' : 'text-gray-600'} transition-colors shrink-0`}>{sub.icon}</span>
                     <span className="text-[10px] font-semibold uppercase tracking-wider">{t(sub.label)}</span>
                   </button>
                 );
