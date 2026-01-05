@@ -93,6 +93,7 @@ func ConnectDatabase() {
 		&models.StationeryRequest{},
 		&models.StationeryRequestItem{},
 		&models.DeliveryLocation{},
+		&models.Purchase{},
 		
 		// Timesheet
 		&models.Timesheet{},
