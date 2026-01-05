@@ -20,6 +20,22 @@ const Login: React.FC = () => {
       await authService.login(formData);
       navigate('/');
     } catch (err: any) {
+      // Fallback: Demo login jika backend tidak tersedia
+      if (formData.username === 'admin' && formData.password === 'admin123') {
+        const demoUser = {
+          id: 1,
+          username: 'admin',
+          email: 'admin@modena.com',
+          fullName: 'Administrator',
+          role: 'Admin',
+          department: 'IT',
+          branch: 'Head Office',
+        };
+        localStorage.setItem('token', 'demo-token-' + Date.now());
+        localStorage.setItem('user', JSON.stringify(demoUser));
+        navigate('/');
+        return;
+      }
       setError(err.message || 'Login gagal. Periksa username dan password.');
     } finally {
       setLoading(false);
