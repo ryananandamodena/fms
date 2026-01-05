@@ -1,15 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FilterBar } from '../../components/FilterBar';
-import { BuildingAssetTable } from '../../components/BuildingAssetTable';
-import { BuildingAssetItemModal } from '../../components/BuildingAssetItemModal';
-import { useAppContext } from '../../contexts/AppContext';
+import { GeneralAssetTable } from '../../components/GeneralAssetTable';
+import { AssetGeneralModal } from '../../components/AssetGeneralModal';
+import { generalAssetService } from '../../services';
 
 const CustomerService: React.FC = () => {
-  const { csBuildingData, setCsBuildingData, buildingData, vendorData } = useAppContext();
+  const [assetData, setAssetData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   const [activeTab, setActiveTab] = useState('SEMUA');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const data = await generalAssetService.getCS();
+      setAssetData(data || []);
+    } catch (error) {
+      console.error('Failed to fetch assets:', error);
+      setAssetData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openModal = (mode: 'create' | 'edit' | 'view', item: any = null) => {
     setModalMode(mode);
@@ -17,50 +36,66 @@ const CustomerService: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (data: any) => {
-    if (modalMode === 'create') {
-      setCsBuildingData([...csBuildingData, { ...data, id: `AST-CS-${Date.now()}`, approvalStatus: 'Pending Approval' as const }]);
-    } else {
-      setCsBuildingData(csBuildingData.map(d => d.id === selectedItem.id ? { ...d, ...data } : d));
+  const handleSave = async (data: any) => {
+    try {
+      if (modalMode === 'create') {
+        const newItem = await generalAssetService.create({
+          ...data,
+          assetCategory: 'CS',
+        });
+        setAssetData(prev => [...prev, newItem]);
+      } else {
+        const updated = await generalAssetService.update(selectedItem.id, data);
+        setAssetData(prev => prev.map(d => d.id === selectedItem.id ? updated : d));
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Failed to save:', error);
+      alert('Gagal menyimpan data');
     }
-    setIsModalOpen(false);
   };
 
-  const handleAction = (item: any, action: 'Approve' | 'Reject' | 'Revise') => {
-    const statusMap: Record<string, 'Approved' | 'Rejected' | 'Revised'> = { 'Approve': 'Approved', 'Reject': 'Rejected', 'Revise': 'Revised' };
-    setCsBuildingData(csBuildingData.map(d => d.id === item.id ? { ...d, approvalStatus: statusMap[action] } : d));
+  const handleDelete = async (id: number) => {
+    if (!confirm('Yakin ingin menghapus data ini?')) return;
+    try {
+      await generalAssetService.delete(id);
+      setAssetData(prev => prev.filter(d => d.id !== id));
+    } catch (error) {
+      console.error('Failed to delete:', error);
+      alert('Gagal menghapus data');
+    }
   };
 
-  // Filter data based on active tab
   const filteredData = activeTab === 'SEMUA' 
-    ? csBuildingData 
-    : csBuildingData.filter(item => (item.status || '').toUpperCase() === activeTab);
+    ? assetData 
+    : assetData.filter(item => (item.status || 'Active').toUpperCase() === activeTab);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64">Loading...</div>;
+  }
 
   return (
     <>
       <FilterBar
-        tabs={['SEMUA', 'GOOD', 'FAIR', 'CRITICAL']}
+        tabs={['SEMUA', 'ACTIVE', 'INACTIVE', 'MAINTENANCE']}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onAddClick={() => openModal('create')}
-        customAddLabel="New CS Asset"
+        customAddLabel="Tambah Asset CS"
       />
-      <BuildingAssetTable
+      <GeneralAssetTable
         data={filteredData}
         onEdit={(item) => openModal('edit', item)}
         onView={(item) => openModal('view', item)}
-        onDelete={(id) => setCsBuildingData(prev => prev.filter(i => i.id !== id))}
-        onAction={handleAction}
+        onDelete={(id) => handleDelete(Number(id))}
       />
       {isModalOpen && (
-        <BuildingAssetItemModal
+        <AssetGeneralModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSave}
           mode={modalMode}
           initialData={selectedItem}
-          buildingList={buildingData}
-          vendorList={vendorData}
         />
       )}
     </>

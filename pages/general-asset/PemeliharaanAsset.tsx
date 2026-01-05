@@ -1,18 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FilterBar } from '../../components/FilterBar';
-import { BuildingMaintenanceTable } from '../../components/BuildingMaintenanceTable';
-import { BuildingMaintenanceModal } from '../../components/BuildingMaintenanceModal';
-import { useAppContext } from '../../contexts/AppContext';
+import { MaintenanceReminderTable } from '../../components/MaintenanceReminderTable';
+import { assetMaintenanceService } from '../../services';
 
 const PemeliharaanAsset: React.FC = () => {
-  const { buildingMaintenanceData, setBuildingMaintenanceData, buildingAssetData, itBuildingData, csBuildingData } = useAppContext();
+  const [maintenanceData, setMaintenanceData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   const [activeTab, setActiveTab] = useState('SEMUA');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedItem, setSelectedItem] = useState<any>(null);
 
-  // Combine all assets for the modal
-  const allAssets = [...buildingAssetData, ...itBuildingData, ...csBuildingData];
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const data = await assetMaintenanceService.getAll();
+      setMaintenanceData(data || []);
+    } catch (error) {
+      console.error('Failed to fetch maintenance:', error);
+      setMaintenanceData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openModal = (mode: 'create' | 'edit' | 'view', item: any = null) => {
     setModalMode(mode);
@@ -20,51 +35,51 @@ const PemeliharaanAsset: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (data: any) => {
-    if (modalMode === 'create') {
-      setBuildingMaintenanceData([...buildingMaintenanceData, { ...data, id: `MNT-${Date.now()}` }]);
-    } else {
-      setBuildingMaintenanceData(buildingMaintenanceData.map(d => d.id === selectedItem.id ? { ...d, ...data } : d));
+  const handleSave = async (data: any) => {
+    try {
+      if (modalMode === 'create') {
+        const newItem = await assetMaintenanceService.create(data);
+        setMaintenanceData(prev => [...prev, newItem]);
+      } else {
+        const updated = await assetMaintenanceService.update(selectedItem.id, data);
+        setMaintenanceData(prev => prev.map(d => d.id === selectedItem.id ? updated : d));
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Failed to save:', error);
+      alert('Gagal menyimpan data');
     }
-    setIsModalOpen(false);
   };
 
-  const handleAction = (item: any, action: 'Approve' | 'Reject' | 'Revise') => {
-    const statusMap: Record<string, 'Approved' | 'Rejected' | 'Revised'> = { 'Approve': 'Approved', 'Reject': 'Rejected', 'Revise': 'Revised' };
-    setBuildingMaintenanceData(buildingMaintenanceData.map(d => d.id === item.id ? { ...d, approvalStatus: statusMap[action] } : d));
+  const handleDelete = async (id: number) => {
+    if (!confirm('Yakin ingin menghapus data ini?')) return;
+    try {
+      await assetMaintenanceService.delete(id);
+      setMaintenanceData(prev => prev.filter(d => d.id !== id));
+    } catch (error) {
+      console.error('Failed to delete:', error);
+      alert('Gagal menghapus data');
+    }
   };
 
-  // Filter data based on active tab
   const filteredData = activeTab === 'SEMUA' 
-    ? buildingMaintenanceData 
-    : buildingMaintenanceData.filter(item => (item.status || '').toUpperCase().includes(activeTab.replace(' ', '')));
+    ? maintenanceData 
+    : maintenanceData.filter(item => (item.status || 'Safe').toUpperCase() === activeTab);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64">Loading...</div>;
+  }
 
   return (
     <>
       <FilterBar
-        tabs={['SEMUA', 'SCHEDULED', 'IN PROGRESS', 'COMPLETED']}
+        tabs={['SEMUA', 'SAFE', 'WARNING', 'OVERDUE']}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onAddClick={() => openModal('create')}
-        customAddLabel="New Maintenance"
+        customAddLabel="Tambah Jadwal"
       />
-      <BuildingMaintenanceTable
-        data={filteredData}
-        onEdit={(item) => openModal('edit', item)}
-        onView={(item) => openModal('view', item)}
-        onDelete={(id) => setBuildingMaintenanceData(prev => prev.filter(i => i.id !== id))}
-        onAction={handleAction}
-      />
-      {isModalOpen && (
-        <BuildingMaintenanceModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSave={handleSave}
-          mode={modalMode}
-          initialData={selectedItem}
-          assetList={allAssets}
-        />
-      )}
+      <MaintenanceReminderTable data={filteredData} />
     </>
   );
 };
