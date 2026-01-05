@@ -58,11 +58,11 @@ const DaftarGedung: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number | string) => {
     if (!confirm('Yakin ingin menghapus data ini?')) return;
     try {
-      await buildingService.delete(id);
-      setBuildingData(prev => prev.filter(d => d.id !== id));
+      await buildingService.delete(Number(id));
+      setBuildingData(prev => prev.filter(d => d.id !== Number(id)));
     } catch (error) {
       console.error('Failed to delete building:', error);
       alert('Gagal menghapus data');
@@ -134,6 +134,8 @@ const DaftarGedung: React.FC = () => {
           onSave={handleSave}
           mode={modalMode}
           initialData={selectedItem}
+          buildingTypeList={buildingTypeList}
+          existingBuildings={buildingData}
         />
       )}
     </>

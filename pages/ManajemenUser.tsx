@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { FilterBar } from '../components/FilterBar';
 import { UserTable } from '../components/UserTable';
 import { UserModal } from '../components/UserModal';
-import { userService } from '../services';
+import { userService, getMasterData } from '../services';
 
 const ManajemenUser: React.FC = () => {
   const [userData, setUserData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [departmentList, setDepartmentList] = useState<any[]>([]);
+  const [locationList, setLocationList] = useState<any[]>([]);
   
   const [activeTab, setActiveTab] = useState('SEMUA');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,16 +16,22 @@ const ManajemenUser: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<any>(null);
 
   useEffect(() => {
-    fetchUsers();
+    fetchData();
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const data = await userService.getAll();
-      setUserData(data || []);
+      const [users, departments, locations] = await Promise.all([
+        userService.getAll(),
+        getMasterData.departments(),
+        getMasterData.locations(),
+      ]);
+      setUserData(users || []);
+      setDepartmentList(departments || []);
+      setLocationList(locations || []);
     } catch (error) {
-      console.error('Failed to fetch users:', error);
+      console.error('Failed to fetch data:', error);
       setUserData([]);
     } finally {
       setLoading(false);
@@ -52,11 +60,11 @@ const ManajemenUser: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number | string) => {
     if (!confirm('Yakin ingin menghapus user ini?')) return;
     try {
-      await userService.delete(id);
-      setUserData(prev => prev.filter(d => d.id !== id));
+      await userService.delete(Number(id));
+      setUserData(prev => prev.filter(d => d.id !== Number(id)));
     } catch (error) {
       console.error('Failed to delete user:', error);
       alert('Gagal menghapus data');
@@ -93,6 +101,8 @@ const ManajemenUser: React.FC = () => {
           onSave={handleSave}
           mode={modalMode}
           initialData={selectedItem}
+          departmentList={departmentList}
+          locationList={locationList}
         />
       )}
     </>

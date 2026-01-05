@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { FilterBar } from '../../components/FilterBar';
 import { VehicleTable } from '../../components/VehicleTable';
 import { VehicleModal } from '../../components/VehicleModal';
-import { vehicleService } from '../../services';
+import { vehicleService, getMasterData } from '../../services';
 import { useApprovalWorkflow, APPROVAL_MODULES } from '../../hooks/useApprovalWorkflow';
 
 const DaftarAset: React.FC = () => {
   const [vehicleData, setVehicleData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [brandList, setBrandList] = useState<any[]>([]);
+  const [colorList, setColorList] = useState<any[]>([]);
+  const [channelList, setChannelList] = useState<any[]>([]);
+  const [branchList, setBranchList] = useState<any[]>([]);
   const { getApproverName, isLastTier } = useApprovalWorkflow(APPROVAL_MODULES.VEHICLE_REQUEST);
   
   const [activeTab, setActiveTab] = useState('SEMUA');
@@ -17,16 +21,26 @@ const DaftarAset: React.FC = () => {
 
   // Fetch data from API
   useEffect(() => {
-    fetchVehicles();
+    fetchData();
   }, []);
 
-  const fetchVehicles = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const data = await vehicleService.getAll();
-      setVehicleData(data || []);
+      const [vehicles, brands, colors, channels, locations] = await Promise.all([
+        vehicleService.getAll(),
+        getMasterData.brands(),
+        getMasterData.colors(),
+        getMasterData.channels(),
+        getMasterData.locations(),
+      ]);
+      setVehicleData(vehicles || []);
+      setBrandList(brands || []);
+      setColorList(colors || []);
+      setChannelList(channels || []);
+      setBranchList(locations || []);
     } catch (error) {
-      console.error('Failed to fetch vehicles:', error);
+      console.error('Failed to fetch data:', error);
       setVehicleData([]);
     } finally {
       setLoading(false);
@@ -135,6 +149,10 @@ const DaftarAset: React.FC = () => {
           onSave={handleSave}
           mode={modalMode}
           initialData={selectedItem}
+          brandList={brandList}
+          colorList={colorList}
+          channelList={channelList}
+          branchList={branchList}
         />
       )}
     </>
