@@ -1,15 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FilterBar } from '../../components/FilterBar';
 import { InsuranceTable } from '../../components/InsuranceTable';
 import { InsuranceModal } from '../../components/InsuranceModal';
-import { useAppContext } from '../../contexts/AppContext';
+import { insuranceService } from '../../services';
 
 const AsuransiGedung: React.FC = () => {
-  const { buildingInsuranceData, setBuildingInsuranceData, buildingData } = useAppContext();
+  const [insuranceData, setInsuranceData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   const [activeTab, setActiveTab] = useState('SEMUA');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const data = await insuranceService.getBuildingInsurances();
+      setInsuranceData(data || []);
+    } catch (error) {
+      console.error('Failed to fetch insurances:', error);
+      setInsuranceData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openModal = (mode: 'create' | 'edit' | 'view', item: any = null) => {
     setModalMode(mode);
@@ -17,29 +36,59 @@ const AsuransiGedung: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (data: any) => {
-    if (modalMode === 'create') {
-      setBuildingInsuranceData([...buildingInsuranceData, { ...data, id: `INS-B-${Date.now()}`, category: 'Building' }]);
-    } else {
-      setBuildingInsuranceData(buildingInsuranceData.map(d => d.id === selectedItem.id ? { ...d, ...data } : d));
+  const handleSave = async (data: any) => {
+    try {
+      if (modalMode === 'create') {
+        const newItem = await insuranceService.create({
+          ...data,
+          category: 'Building',
+        });
+        setInsuranceData(prev => [...prev, newItem]);
+      } else {
+        const updated = await insuranceService.update(selectedItem.id, data);
+        setInsuranceData(prev => prev.map(d => d.id === selectedItem.id ? updated : d));
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Failed to save:', error);
+      alert('Gagal menyimpan data');
     }
-    setIsModalOpen(false);
   };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Yakin ingin menghapus data ini?')) return;
+    try {
+      await insuranceService.delete(id);
+      setInsuranceData(prev => prev.filter(d => d.id !== id));
+    } catch (error) {
+      console.error('Failed to delete:', error);
+      alert('Gagal menghapus data');
+    }
+  };
+
+  const filteredData = activeTab === 'SEMUA' 
+    ? insuranceData 
+    : insuranceData.filter(item => (item.status || 'Active').toUpperCase() === activeTab);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64">Loading...</div>;
+  }
 
   return (
     <>
       <FilterBar
-        tabs={['SEMUA', 'AKTIF', 'AKAN HABIS', 'EXPIRED']}
+        tabs={['SEMUA', 'ACTIVE', 'EXPIRING', 'EXPIRED']}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onAddClick={() => openModal('create')}
-        customAddLabel="Polis Baru"
+        customAddLabel="Tambah Asuransi"
       />
       <InsuranceTable
-        data={buildingInsuranceData}
-        onView={(item) => openModal('view', item)}
+        data={filteredData}
         onEdit={(item) => openModal('edit', item)}
-        onDelete={(id) => setBuildingInsuranceData(prev => prev.filter(i => i.id !== id))}
+        onView={(item) => openModal('view', item)}
+        onDelete={handleDelete}
+        category="Building"
       />
       {isModalOpen && (
         <InsuranceModal
@@ -49,7 +98,6 @@ const AsuransiGedung: React.FC = () => {
           mode={modalMode}
           initialData={selectedItem}
           category="Building"
-          assetList={buildingData}
         />
       )}
     </>

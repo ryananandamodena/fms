@@ -1,26 +1,36 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FilterBar } from '../../components/FilterBar';
 import { MutationTable } from '../../components/MutationTable';
 import { MutationModal } from '../../components/MutationModal';
-import { useAppContext } from '../../contexts/AppContext';
+import { assetMutationService } from '../../services';
 import { useApprovalWorkflow, APPROVAL_MODULES } from '../../hooks/useApprovalWorkflow';
 
 const MutasiAset: React.FC = () => {
-  const { gaMutationData, setGaMutationData, buildingAssetData, itBuildingData, csBuildingData } = useAppContext();
-  const { workflow, getApproverName, isLastTier } = useApprovalWorkflow(APPROVAL_MODULES.GENERAL_ASSET);
+  const [mutationData, setMutationData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { getApproverName, isLastTier } = useApprovalWorkflow(APPROVAL_MODULES.ASSET_MUTATION);
   
-  // Combine all general assets with source category for filtering
-  const combinedAssetList = useMemo(() => {
-    return [
-      ...buildingAssetData.map(a => ({ ...a, sourceCategory: 'Asset HC' })),
-      ...itBuildingData.map(a => ({ ...a, sourceCategory: 'Asset IT' })),
-      ...csBuildingData.map(a => ({ ...a, sourceCategory: 'Customer Service' })),
-    ];
-  }, [buildingAssetData, itBuildingData, csBuildingData]);
   const [activeTab, setActiveTab] = useState('SEMUA');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const data = await assetMutationService.getAll();
+      setMutationData(data || []);
+    } catch (error) {
+      console.error('Failed to fetch mutations:', error);
+      setMutationData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openModal = (mode: 'create' | 'edit' | 'view', item: any = null) => {
     setModalMode(mode);
@@ -28,74 +38,75 @@ const MutasiAset: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (data: any) => {
-    if (modalMode === 'create') {
-      setGaMutationData([...gaMutationData, { 
-        ...data, 
-        id: `MUT-GA-${Date.now()}`, 
-        assetType: 'GENERAL_ASSET',
-        currentApprovalLevel: 1,
-        approvalHistory: []
-      }]);
-    } else {
-      setGaMutationData(gaMutationData.map(d => d.id === selectedItem.id ? { ...d, ...data } : d));
-    }
-    setIsModalOpen(false);
-  };
-
-  const handleAction = (item: any, action: 'Approve' | 'Reject' | 'Revise') => {
-    const currentLevel = item.currentApprovalLevel || 1;
-    const approverName = getApproverName(currentLevel);
-    const isLast = isLastTier(currentLevel);
-    const today = new Date().toISOString().split('T')[0];
-
-    const newHistory = [...(item.approvalHistory || []), {
-      level: currentLevel,
-      approver: approverName,
-      status: action === 'Approve' ? 'Approved' : action === 'Reject' ? 'Rejected' : 'Revised',
-      date: today,
-      notes: ''
-    }];
-
-    if (action === 'Reject') {
-      setGaMutationData(gaMutationData.map(d => d.id === item.id ? { 
-        ...d, 
-        status: 'Rejected',
-        statusApproval: 'Rejected',
-        currentApprovalLevel: 0,
-        approvalHistory: newHistory
-      } : d));
-    } else if (action === 'Approve' && isLast) {
-      setGaMutationData(gaMutationData.map(d => d.id === item.id ? { 
-        ...d, 
-        status: 'Approved',
-        statusApproval: 'Approved',
-        currentApprovalLevel: 0,
-        approvalHistory: newHistory
-      } : d));
-    } else if (action === 'Approve') {
-      setGaMutationData(gaMutationData.map(d => d.id === item.id ? { 
-        ...d, 
-        currentApprovalLevel: currentLevel + 1,
-        approvalHistory: newHistory
-      } : d));
+  const handleSave = async (data: any) => {
+    try {
+      if (modalMode === 'create') {
+        const newItem = await assetMutationService.create({
+          ...data,
+          assetType: 'GENERAL_ASSET',
+          statusApproval: 'Pending',
+        });
+        setMutationData(prev => [...prev, newItem]);
+      } else {
+        const updated = await assetMutationService.update(selectedItem.id, data);
+        setMutationData(prev => prev.map(d => d.id === selectedItem.id ? updated : d));
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Failed to save:', error);
+      alert('Gagal menyimpan data');
     }
   };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Yakin ingin menghapus data ini?')) return;
+    try {
+      await assetMutationService.delete(id);
+      setMutationData(prev => prev.filter(d => d.id !== id));
+    } catch (error) {
+      console.error('Failed to delete:', error);
+      alert('Gagal menghapus data');
+    }
+  };
+
+  const handleAction = async (item: any, action: 'Approve' | 'Reject' | 'Revise') => {
+    let updateData: any = {};
+    if (action === 'Approve') {
+      updateData.statusApproval = 'Approved';
+    } else if (action === 'Reject') {
+      updateData.statusApproval = 'Rejected';
+    }
+
+    try {
+      const updated = await assetMutationService.update(item.id, updateData);
+      setMutationData(prev => prev.map(d => d.id === item.id ? updated : d));
+    } catch (error) {
+      console.error('Failed to update:', error);
+    }
+  };
+
+  const filteredData = activeTab === 'SEMUA' 
+    ? mutationData 
+    : mutationData.filter(item => (item.statusApproval || 'Pending').toUpperCase() === activeTab);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64">Loading...</div>;
+  }
 
   return (
     <>
       <FilterBar
-        tabs={['SEMUA', 'PENDING', 'APPROVED', 'COMPLETED']}
+        tabs={['SEMUA', 'APPROVED', 'PENDING', 'REJECTED']}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onAddClick={() => openModal('create')}
-        customAddLabel="New Mutation"
+        customAddLabel="Request Mutasi"
       />
       <MutationTable
-        data={gaMutationData}
+        data={filteredData}
         onEdit={(item) => openModal('edit', item)}
         onView={(item) => openModal('view', item)}
-        onDelete={(id) => setGaMutationData(prev => prev.filter(i => i.id !== id))}
+        onDelete={handleDelete}
         onAction={handleAction}
       />
       {isModalOpen && (
@@ -106,7 +117,6 @@ const MutasiAset: React.FC = () => {
           mode={modalMode}
           initialData={selectedItem}
           assetType="GENERAL_ASSET"
-          generalAssetList={combinedAssetList}
         />
       )}
     </>

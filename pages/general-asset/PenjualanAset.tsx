@@ -1,26 +1,36 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FilterBar } from '../../components/FilterBar';
 import { SalesTable } from '../../components/SalesTable';
 import { SalesModal } from '../../components/SalesModal';
-import { useAppContext } from '../../contexts/AppContext';
+import { assetSaleService } from '../../services';
 import { useApprovalWorkflow, APPROVAL_MODULES } from '../../hooks/useApprovalWorkflow';
 
 const PenjualanAset: React.FC = () => {
-  const { gaSalesData, setGaSalesData, buildingAssetData, itBuildingData, csBuildingData } = useAppContext();
-  const { workflow, getApproverName, isLastTier } = useApprovalWorkflow(APPROVAL_MODULES.GENERAL_ASSET);
+  const [salesData, setSalesData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { getApproverName, isLastTier } = useApprovalWorkflow(APPROVAL_MODULES.ASSET_DISPOSAL);
   
-  // Combine all general assets with source category for filtering
-  const combinedAssetList = useMemo(() => {
-    return [
-      ...buildingAssetData.map(a => ({ ...a, sourceCategory: 'Asset HC' })),
-      ...itBuildingData.map(a => ({ ...a, sourceCategory: 'Asset IT' })),
-      ...csBuildingData.map(a => ({ ...a, sourceCategory: 'Customer Service' })),
-    ];
-  }, [buildingAssetData, itBuildingData, csBuildingData]);
   const [activeTab, setActiveTab] = useState('SEMUA');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const data = await assetSaleService.getAll();
+      setSalesData(data || []);
+    } catch (error) {
+      console.error('Failed to fetch sales:', error);
+      setSalesData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openModal = (mode: 'create' | 'edit' | 'view', item: any = null) => {
     setModalMode(mode);
@@ -28,72 +38,75 @@ const PenjualanAset: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (data: any) => {
-    if (modalMode === 'create') {
-      setGaSalesData([...gaSalesData, { 
-        ...data, 
-        id: `SALE-GA-${Date.now()}`, 
-        assetType: 'GENERAL_ASSET',
-        currentApprovalLevel: 1,
-        approvalHistory: []
-      }]);
-    } else {
-      setGaSalesData(gaSalesData.map(d => d.id === selectedItem.id ? { ...d, ...data } : d));
-    }
-    setIsModalOpen(false);
-  };
-
-  const handleAction = (item: any, action: 'Approve' | 'Reject' | 'Revise') => {
-    const currentLevel = item.currentApprovalLevel || 1;
-    const approverName = getApproverName(currentLevel);
-    const isLast = isLastTier(currentLevel);
-    const today = new Date().toISOString().split('T')[0];
-
-    const newHistory = [...(item.approvalHistory || []), {
-      level: currentLevel,
-      approver: approverName,
-      status: action === 'Approve' ? 'Approved' : action === 'Reject' ? 'Rejected' : 'Revised',
-      date: today,
-      notes: ''
-    }];
-
-    if (action === 'Reject') {
-      setGaSalesData(gaSalesData.map(d => d.id === item.id ? { 
-        ...d, 
-        statusApproval: 'Rejected',
-        currentApprovalLevel: 0,
-        approvalHistory: newHistory
-      } : d));
-    } else if (action === 'Approve' && isLast) {
-      setGaSalesData(gaSalesData.map(d => d.id === item.id ? { 
-        ...d, 
-        statusApproval: 'Approved',
-        currentApprovalLevel: 0,
-        approvalHistory: newHistory
-      } : d));
-    } else if (action === 'Approve') {
-      setGaSalesData(gaSalesData.map(d => d.id === item.id ? { 
-        ...d, 
-        currentApprovalLevel: currentLevel + 1,
-        approvalHistory: newHistory
-      } : d));
+  const handleSave = async (data: any) => {
+    try {
+      if (modalMode === 'create') {
+        const newItem = await assetSaleService.create({
+          ...data,
+          assetType: 'GENERAL_ASSET',
+          statusApproval: 'Pending',
+        });
+        setSalesData(prev => [...prev, newItem]);
+      } else {
+        const updated = await assetSaleService.update(selectedItem.id, data);
+        setSalesData(prev => prev.map(d => d.id === selectedItem.id ? updated : d));
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Failed to save:', error);
+      alert('Gagal menyimpan data');
     }
   };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Yakin ingin menghapus data ini?')) return;
+    try {
+      await assetSaleService.delete(id);
+      setSalesData(prev => prev.filter(d => d.id !== id));
+    } catch (error) {
+      console.error('Failed to delete:', error);
+      alert('Gagal menghapus data');
+    }
+  };
+
+  const handleAction = async (item: any, action: 'Approve' | 'Reject' | 'Revise') => {
+    let updateData: any = {};
+    if (action === 'Approve') {
+      updateData.statusApproval = 'Approved';
+    } else if (action === 'Reject') {
+      updateData.statusApproval = 'Rejected';
+    }
+
+    try {
+      const updated = await assetSaleService.update(item.id, updateData);
+      setSalesData(prev => prev.map(d => d.id === item.id ? updated : d));
+    } catch (error) {
+      console.error('Failed to update:', error);
+    }
+  };
+
+  const filteredData = activeTab === 'SEMUA' 
+    ? salesData 
+    : salesData.filter(item => (item.status || 'Open').toUpperCase() === activeTab);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64">Loading...</div>;
+  }
 
   return (
     <>
       <FilterBar
-        tabs={['SEMUA', 'OPEN BIDDING', 'CLOSED', 'SOLD']}
+        tabs={['SEMUA', 'OPEN', 'CLOSED', 'SOLD']}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onAddClick={() => openModal('create')}
-        customAddLabel="New Sale"
+        customAddLabel="Buat Lelang"
       />
       <SalesTable
-        data={gaSalesData}
+        data={filteredData}
         onEdit={(item) => openModal('edit', item)}
         onView={(item) => openModal('view', item)}
-        onDelete={(id) => setGaSalesData(prev => prev.filter(i => i.id !== id))}
+        onDelete={handleDelete}
         onAction={handleAction}
       />
       {isModalOpen && (
@@ -104,7 +117,6 @@ const PenjualanAset: React.FC = () => {
           mode={modalMode}
           initialData={selectedItem}
           assetType="GENERAL_ASSET"
-          generalAssetList={combinedAssetList}
         />
       )}
     </>

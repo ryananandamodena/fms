@@ -2,6 +2,9 @@ import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 
+// Login
+const Login = React.lazy(() => import('./pages/Login'));
+
 // Lazy load pages for better performance
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 
@@ -86,6 +89,10 @@ const MasterPaymentType = React.lazy(() => import('./pages/master/MasterPaymentT
 const MasterServiceCategory = React.lazy(() => import('./pages/master/MasterServiceCategory'));
 
 export const router = createBrowserRouter([
+  {
+    path: '/login',
+    element: <Login />,
+  },
   {
     path: '/',
     element: <MainLayout />,

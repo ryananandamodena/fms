@@ -1,15 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FilterBar } from '../components/FilterBar';
 import { UserTable } from '../components/UserTable';
 import { UserModal } from '../components/UserModal';
-import { useAppContext } from '../contexts/AppContext';
+import { userService } from '../services';
 
 const ManajemenUser: React.FC = () => {
-  const { userData, setUserData, masterDepartment, masterLocation, masterRole } = useAppContext();
+  const [userData, setUserData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   const [activeTab, setActiveTab] = useState('SEMUA');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const data = await userService.getAll();
+      setUserData(data || []);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+      setUserData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openModal = (mode: 'create' | 'edit' | 'view', item: any = null) => {
     setModalMode(mode);
@@ -17,14 +36,40 @@ const ManajemenUser: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (data: any) => {
-    if (modalMode === 'create') {
-      setUserData([...userData, { ...data, id: `USR-${Date.now()}` }]);
-    } else {
-      setUserData(userData.map(d => d.id === selectedItem.id ? { ...d, ...data } : d));
+  const handleSave = async (data: any) => {
+    try {
+      if (modalMode === 'create') {
+        const newUser = await userService.create(data);
+        setUserData(prev => [...prev, newUser]);
+      } else {
+        const updated = await userService.update(selectedItem.id, data);
+        setUserData(prev => prev.map(d => d.id === selectedItem.id ? updated : d));
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Failed to save user:', error);
+      alert('Gagal menyimpan data');
     }
-    setIsModalOpen(false);
   };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Yakin ingin menghapus user ini?')) return;
+    try {
+      await userService.delete(id);
+      setUserData(prev => prev.filter(d => d.id !== id));
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      alert('Gagal menghapus data');
+    }
+  };
+
+  const filteredData = activeTab === 'SEMUA' 
+    ? userData 
+    : userData.filter(item => (item.status || 'Active').toUpperCase() === activeTab);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64">Loading...</div>;
+  }
 
   return (
     <>
@@ -33,13 +78,13 @@ const ManajemenUser: React.FC = () => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onAddClick={() => openModal('create')}
-        customAddLabel="New User"
+        customAddLabel="Tambah User"
       />
       <UserTable
-        data={userData}
+        data={filteredData}
         onEdit={(item) => openModal('edit', item)}
         onView={(item) => openModal('view', item)}
-        onDelete={(id) => setUserData(prev => prev.filter(i => i.id !== id))}
+        onDelete={handleDelete}
       />
       {isModalOpen && (
         <UserModal
@@ -48,9 +93,6 @@ const ManajemenUser: React.FC = () => {
           onSave={handleSave}
           mode={modalMode}
           initialData={selectedItem}
-          departmentList={masterDepartment}
-          locationList={masterLocation}
-          roleList={masterRole}
         />
       )}
     </>

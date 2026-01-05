@@ -1,18 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FilterBar } from '../components/FilterBar';
 import { VendorTable } from '../components/VendorTable';
 import { VendorModal } from '../components/VendorModal';
-import { useAppContext } from '../contexts/AppContext';
-import { useApprovalWorkflow, APPROVAL_MODULES } from '../hooks/useApprovalWorkflow';
+import { vendorService } from '../services';
 
 const Vendor: React.FC = () => {
-  const { vendorData, setVendorData } = useAppContext();
-  const { workflow, getApproverName, isLastTier } = useApprovalWorkflow(APPROVAL_MODULES.VENDOR_REGISTRATION);
+  const [vendorData, setVendorData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const [activeTab, setActiveTab] = useState('SEMUA');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  useEffect(() => {
+    fetchVendors();
+  }, []);
+
+  const fetchVendors = async () => {
+    setLoading(true);
+    try {
+      const data = await vendorService.getAll();
+      setVendorData(data || []);
+    } catch (error) {
+      console.error('Failed to fetch vendors:', error);
+      setVendorData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openModal = (mode: 'create' | 'edit' | 'view', item: any = null) => {
     setModalMode(mode);
@@ -20,19 +36,40 @@ const Vendor: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (data: any) => {
-    if (modalMode === 'create') {
-      setVendorData([...vendorData, { 
-        ...data, 
-        id: `VND-${Date.now()}`,
-        currentApprovalLevel: 1,
-        approvalHistory: []
-      }]);
-    } else {
-      setVendorData(vendorData.map(d => d.id === selectedItem.id ? { ...d, ...data } : d));
+  const handleSave = async (data: any) => {
+    try {
+      if (modalMode === 'create') {
+        const newVendor = await vendorService.create(data);
+        setVendorData(prev => [...prev, newVendor]);
+      } else {
+        const updated = await vendorService.update(selectedItem.id, data);
+        setVendorData(prev => prev.map(d => d.id === selectedItem.id ? updated : d));
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Failed to save vendor:', error);
+      alert('Gagal menyimpan data');
     }
-    setIsModalOpen(false);
   };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Yakin ingin menghapus data ini?')) return;
+    try {
+      await vendorService.delete(id);
+      setVendorData(prev => prev.filter(d => d.id !== id));
+    } catch (error) {
+      console.error('Failed to delete vendor:', error);
+      alert('Gagal menghapus data');
+    }
+  };
+
+  const filteredData = activeTab === 'SEMUA' 
+    ? vendorData 
+    : vendorData.filter(item => (item.status || 'Active').toUpperCase() === activeTab);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64">Loading...</div>;
+  }
 
   return (
     <>
@@ -44,10 +81,10 @@ const Vendor: React.FC = () => {
         customAddLabel="New Vendor"
       />
       <VendorTable
-        data={vendorData}
+        data={filteredData}
         onEdit={(item) => openModal('edit', item)}
         onView={(item) => openModal('view', item)}
-        onDelete={(id) => setVendorData(prev => prev.filter(i => i.id !== id))}
+        onDelete={handleDelete}
       />
       {isModalOpen && (
         <VendorModal

@@ -1,18 +1,37 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FilterBar } from '../../components/FilterBar';
 import { VehicleTable } from '../../components/VehicleTable';
 import { VehicleModal } from '../../components/VehicleModal';
-import { useAppContext } from '../../contexts/AppContext';
+import { vehicleService } from '../../services';
 import { useApprovalWorkflow, APPROVAL_MODULES } from '../../hooks/useApprovalWorkflow';
 
 const DaftarAset: React.FC = () => {
-  const { vehicleData, setVehicleData } = useAppContext();
-  const { workflow, getApproverName, isLastTier, getTotalTiers } = useApprovalWorkflow(APPROVAL_MODULES.VEHICLE_REQUEST);
+  const [vehicleData, setVehicleData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { getApproverName, isLastTier } = useApprovalWorkflow(APPROVAL_MODULES.VEHICLE_REQUEST);
   
   const [activeTab, setActiveTab] = useState('SEMUA');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  // Fetch data from API
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
+
+  const fetchVehicles = async () => {
+    setLoading(true);
+    try {
+      const data = await vehicleService.getAll();
+      setVehicleData(data || []);
+    } catch (error) {
+      console.error('Failed to fetch vehicles:', error);
+      setVehicleData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openModal = (mode: 'create' | 'edit' | 'view', item: any = null) => {
     setModalMode(mode);
@@ -20,22 +39,37 @@ const DaftarAset: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (data: any) => {
-    if (modalMode === 'create') {
-      setVehicleData([...vehicleData, { 
-        ...data, 
-        id: Date.now(), 
-        approvalStatus: 'Pending',
-        currentApprovalLevel: 1,
-        approvalHistory: []
-      }]);
-    } else {
-      setVehicleData(vehicleData.map(d => d.id === selectedItem.id ? { ...d, ...data } : d));
+  const handleSave = async (data: any) => {
+    try {
+      if (modalMode === 'create') {
+        const newVehicle = await vehicleService.create({
+          ...data,
+          approvalStatus: 'Pending',
+        });
+        setVehicleData(prev => [...prev, newVehicle]);
+      } else {
+        const updated = await vehicleService.update(selectedItem.id, data);
+        setVehicleData(prev => prev.map(d => d.id === selectedItem.id ? updated : d));
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Failed to save vehicle:', error);
+      alert('Gagal menyimpan data');
     }
-    setIsModalOpen(false);
   };
 
-  const handleAction = (item: any, action: 'Approve' | 'Reject' | 'Revise') => {
+  const handleDelete = async (id: number) => {
+    if (!confirm('Yakin ingin menghapus data ini?')) return;
+    try {
+      await vehicleService.delete(id);
+      setVehicleData(prev => prev.filter(d => d.id !== id));
+    } catch (error) {
+      console.error('Failed to delete vehicle:', error);
+      alert('Gagal menghapus data');
+    }
+  };
+
+  const handleAction = async (item: any, action: 'Approve' | 'Reject' | 'Revise') => {
     const currentLevel = item.currentApprovalLevel || 1;
     const approverName = getApproverName(currentLevel);
     const isLast = isLastTier(currentLevel);
@@ -49,26 +83,23 @@ const DaftarAset: React.FC = () => {
       notes: ''
     }];
 
+    let updateData: any = { approvalHistory: newHistory };
+
     if (action === 'Reject') {
-      setVehicleData(vehicleData.map(d => d.id === item.id ? { 
-        ...d, 
-        approvalStatus: 'Rejected',
-        currentApprovalLevel: 0,
-        approvalHistory: newHistory
-      } : d));
+      updateData.approvalStatus = 'Rejected';
+      updateData.currentApprovalLevel = 0;
     } else if (action === 'Approve' && isLast) {
-      setVehicleData(vehicleData.map(d => d.id === item.id ? { 
-        ...d, 
-        approvalStatus: 'Approved',
-        currentApprovalLevel: 0,
-        approvalHistory: newHistory
-      } : d));
+      updateData.approvalStatus = 'Approved';
+      updateData.currentApprovalLevel = 0;
     } else if (action === 'Approve') {
-      setVehicleData(vehicleData.map(d => d.id === item.id ? { 
-        ...d, 
-        currentApprovalLevel: currentLevel + 1,
-        approvalHistory: newHistory
-      } : d));
+      updateData.currentApprovalLevel = currentLevel + 1;
+    }
+
+    try {
+      const updated = await vehicleService.update(item.id, updateData);
+      setVehicleData(prev => prev.map(d => d.id === item.id ? updated : d));
+    } catch (error) {
+      console.error('Failed to update approval:', error);
     }
   };
 
@@ -76,6 +107,10 @@ const DaftarAset: React.FC = () => {
   const filteredData = activeTab === 'SEMUA' 
     ? vehicleData 
     : vehicleData.filter(item => (item.approvalStatus || 'Approved').toUpperCase() === activeTab);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64">Loading...</div>;
+  }
 
   return (
     <>
@@ -90,7 +125,7 @@ const DaftarAset: React.FC = () => {
         data={filteredData}
         onEdit={(item) => openModal('edit', item)}
         onView={(item) => openModal('view', item)}
-        onDelete={(id) => setVehicleData(prev => prev.filter(i => i.id !== id))}
+        onDelete={handleDelete}
         onAction={handleAction}
       />
       {isModalOpen && (
