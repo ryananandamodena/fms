@@ -3,7 +3,7 @@ import { FilterBar } from '../../components/FilterBar';
 import { Pagination } from '../../components/Pagination';
 import { AssetMaintenanceModal } from '../../components/AssetMaintenanceModal';
 import { assetMaintenanceService, generalAssetService, vendorService } from '../../services';
-import { FiEye, FiEdit2, FiTrash2, FiMessageSquare, FiCheckCircle } from 'react-icons/fi';
+import { Eye, Edit2, Trash2, CheckCircle } from 'lucide-react';
 
 const PemeliharaanAsset: React.FC = () => {
   const [maintenanceData, setMaintenanceData] = useState<any[]>([]);
@@ -173,7 +173,7 @@ const PemeliharaanAsset: React.FC = () => {
                       <span className="text-xs text-gray-500">
                         {item.approvalStatus === 'Approved' ? (
                           <span className="flex items-center justify-center gap-1 text-green-600">
-                            <FiCheckCircle /> WORKFLOW COMPLETED
+                            <CheckCircle size={14} /> WORKFLOW COMPLETED
                           </span>
                         ) : (
                           'WORKFLOW COMPLETED'
@@ -187,21 +187,21 @@ const PemeliharaanAsset: React.FC = () => {
                           className="p-1.5 hover:bg-gray-100 rounded"
                           title="View"
                         >
-                          <FiEye className="text-gray-500" />
+                          <Eye size={16} className="text-gray-500" />
                         </button>
                         <button
                           onClick={() => openModal('edit', item)}
                           className="p-1.5 hover:bg-gray-100 rounded"
                           title="Edit"
                         >
-                          <FiEdit2 className="text-gray-500" />
+                          <Edit2 size={16} className="text-gray-500" />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
                           className="p-1.5 hover:bg-gray-100 rounded"
                           title="Delete"
                         >
-                          <FiTrash2 className="text-gray-500" />
+                          <Trash2 size={16} className="text-gray-500" />
                         </button>
                       </div>
                     </td>

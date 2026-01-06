@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiTool, FiFileText, FiClock, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { X, Wrench, FileText, Clock, CheckCircle, XCircle, Save } from 'lucide-react';
 import { SearchableSelect } from './SearchableSelect';
 
 interface AssetMaintenanceModalProps {
@@ -139,7 +139,7 @@ export const AssetMaintenanceModal: React.FC<AssetMaintenanceModalProps> = ({
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-              <FiTool className="text-emerald-600 text-xl" />
+              <Wrench className="text-emerald-600" size={20} />
             </div>
             <div>
               <h2 className="text-xl font-semibold">
@@ -151,11 +151,11 @@ export const AssetMaintenanceModal: React.FC<AssetMaintenanceModalProps> = ({
           <div className="flex items-center gap-3">
             {initialData?.approvalStatus === 'Pending Approval' && (
               <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm flex items-center gap-1">
-                <FiClock className="text-xs" /> ON TRACK
+                <Clock size={12} /> ON TRACK
               </span>
             )}
             <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
-              <FiX className="text-xl" />
+              <X size={20} />
             </button>
           </div>
         </div>
@@ -166,7 +166,7 @@ export const AssetMaintenanceModal: React.FC<AssetMaintenanceModalProps> = ({
             {/* Left Column - Asset Info */}
             <div className="space-y-4">
               <h3 className="font-medium text-gray-700 flex items-center gap-2">
-                <FiFileText /> INFORMASI ASET
+                <FileText size={16} /> INFORMASI ASET
               </h3>
               
               <div>
@@ -230,7 +230,7 @@ export const AssetMaintenanceModal: React.FC<AssetMaintenanceModalProps> = ({
             {/* Middle Column - Detail */}
             <div className="space-y-4">
               <h3 className="font-medium text-gray-700 flex items-center gap-2">
-                <FiTool /> DETAIL PENGERJAAN
+                <Wrench size={16} /> DETAIL PENGERJAAN
               </h3>
 
               <div className="grid grid-cols-2 gap-3">
@@ -332,7 +332,7 @@ export const AssetMaintenanceModal: React.FC<AssetMaintenanceModalProps> = ({
             {/* Right Column - Workflow */}
             <div className="space-y-4">
               <h3 className="font-medium text-gray-700 flex items-center gap-2">
-                <FiClock /> LOG HISTORY
+                <Clock size={16} /> LOG HISTORY
               </h3>
               
               <div className="space-y-3 max-h-64 overflow-y-auto">
@@ -357,10 +357,10 @@ export const AssetMaintenanceModal: React.FC<AssetMaintenanceModalProps> = ({
                 <div className="space-y-2 pt-4 border-t">
                   <h4 className="font-medium text-sm">WORKFLOW ACTION</h4>
                   <button className="w-full py-2 bg-emerald-500 text-white rounded-lg flex items-center justify-center gap-2 hover:bg-emerald-600">
-                    <FiCheckCircle /> APPROVE
+                    <CheckCircle size={16} /> APPROVE
                   </button>
                   <button className="w-full py-2 border-2 border-red-500 text-red-500 rounded-lg flex items-center justify-center gap-2 hover:bg-red-50">
-                    <FiXCircle /> REJECT
+                    <XCircle size={16} /> REJECT
                   </button>
                 </div>
               )}
@@ -370,7 +370,7 @@ export const AssetMaintenanceModal: React.FC<AssetMaintenanceModalProps> = ({
           {/* Evidence Section */}
           <div className="mt-6 pt-6 border-t">
             <h3 className="font-medium text-gray-700 flex items-center gap-2 mb-4">
-              <FiFileText /> EVIDENCE BASED MAINTENANCE
+              <FileText size={16} /> EVIDENCE BASED MAINTENANCE
             </h3>
             <div className="grid grid-cols-2 gap-6">
               <div>
@@ -410,7 +410,7 @@ export const AssetMaintenanceModal: React.FC<AssetMaintenanceModalProps> = ({
               onClick={handleSubmit}
               className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 flex items-center gap-2"
             >
-              <FiFileText /> SIMPAN DATA
+              <Save size={16} /> SIMPAN DATA
             </button>
           )}
         </div>
